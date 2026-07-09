@@ -2,158 +2,94 @@
 # File: api.tf
 # ================================================================================
 # Purpose:
-#   Provides Cost Explorer query endpoints for the MCP serverless API:
-#     - GET  /tools                → Tool registry for proxy self-configuration
-#     - POST /cost/month-to-date   → Month-to-date total spend
-#     - POST /cost/by-service      → Spend broken down by AWS service
-#     - POST /cost/compare-months  → This month vs last month
-#     - POST /cost/daily-trend     → Daily spend for current month
-#     - POST /cost/top-drivers     → Top 10 cost drivers by spend
-#     - POST /cost/forecast        → End-of-month cost forecast
+#   HTTP API that fronts the MCP connector. Every route targets the single MCP
+#   router Lambda and is PUBLIC at the gateway — there is no AWS_IAM authorizer
+#   anymore. Authentication is handled inside the Lambda:
+#     - the OAuth endpoints broker a Cognito login (they ARE the auth)
+#     - POST /mcp validates the Bearer as a Cognito access token (mcp.py)
 #
-# Notes:
-#   - Uses HTTP API (v2) for cost efficiency and low-latency routing.
-#   - All routes require AWS_IAM authorization — callers must sign
-#     requests with SigV4. This is the core security mechanism that
-#     the MCP proxy layer will use when invoking these tools.
-#   - All routes use POST so the MCP proxy can pass a JSON body for
-#     future parameter support without a route redesign.
+#   Routes:
+#     GET  /.well-known/oauth-authorization-server  → OAuth server metadata
+#     POST /oauth/register                          → RFC 7591 dynamic registration
+#     GET  /authorize                               → start Cognito login
+#     GET  /oauth/callback                          → Cognito redirect target
+#     POST /oauth/token                             → mac_ code → access token
+#     POST /mcp                                      → MCP JSON-RPC
+#
+#   The six cost tools are NOT exposed here — the router invokes them directly
+#   via lambda:InvokeFunction.
 # ================================================================================
 
 # --------------------------------------------------------------------------------
 # RESOURCE: aws_apigatewayv2_api.costs_api
 # --------------------------------------------------------------------------------
-# Description:
-#   Creates the HTTP API that exposes the Cost Explorer MCP endpoints.
-#   No CORS is configured — IAM-signed server-side callers do not need it.
+# HTTP API for the MCP connector. No CORS block: claude.ai calls /mcp server-to-
+# server, and the OAuth endpoints are browser redirects, not fetch() calls.
 # --------------------------------------------------------------------------------
 resource "aws_apigatewayv2_api" "costs_api" {
-  name          = "costs-api"
+  name          = "costs-mcp-api"
   protocol_type = "HTTP"
 }
 
 # --------------------------------------------------------------------------------
-# RESOURCE: aws_apigatewayv2_integration — one per Lambda
+# RESOURCE: aws_apigatewayv2_integration.router
 # --------------------------------------------------------------------------------
-
-resource "aws_apigatewayv2_integration" "tools_integration" {
+# One integration — the router Lambda handles every route.
+# --------------------------------------------------------------------------------
+resource "aws_apigatewayv2_integration" "router" {
   api_id                 = aws_apigatewayv2_api.costs_api.id
   integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_tools.invoke_arn
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_integration" "mtd_integration" {
-  api_id                 = aws_apigatewayv2_api.costs_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_mtd.invoke_arn
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_integration" "by_service_integration" {
-  api_id                 = aws_apigatewayv2_api.costs_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_by_service.invoke_arn
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_integration" "compare_integration" {
-  api_id                 = aws_apigatewayv2_api.costs_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_compare.invoke_arn
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_integration" "daily_integration" {
-  api_id                 = aws_apigatewayv2_api.costs_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_daily.invoke_arn
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_integration" "top_drivers_integration" {
-  api_id                 = aws_apigatewayv2_api.costs_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_top_drivers.invoke_arn
-  integration_method     = "POST"
-  payload_format_version = "2.0"
-}
-
-resource "aws_apigatewayv2_integration" "forecast_integration" {
-  api_id                 = aws_apigatewayv2_api.costs_api.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.lambda_forecast.invoke_arn
+  integration_uri        = aws_lambda_function.mcp_router.invoke_arn
   integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
 # --------------------------------------------------------------------------------
-# RESOURCE: aws_apigatewayv2_route — one per tool endpoint
+# RESOURCE: aws_apigatewayv2_route — public OAuth + MCP routes
 # --------------------------------------------------------------------------------
-# All routes use AWS_IAM authorization so the MCP proxy must sign every
-# request with SigV4. Unsigned calls are rejected by API Gateway before
-# reaching the Lambda function.
+# No authorization_type on any route: the Lambda enforces auth. An API-GW
+# authorizer would reject the OAuth handshake and the initial /mcp probe before
+# the client ever presents a token.
 # --------------------------------------------------------------------------------
 
-resource "aws_apigatewayv2_route" "tools_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "GET /tools"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.tools_integration.id}"
+resource "aws_apigatewayv2_route" "oauth_metadata" {
+  api_id    = aws_apigatewayv2_api.costs_api.id
+  route_key = "GET /.well-known/oauth-authorization-server"
+  target    = "integrations/${aws_apigatewayv2_integration.router.id}"
 }
 
-resource "aws_apigatewayv2_route" "mtd_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "POST /cost/month-to-date"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.mtd_integration.id}"
+resource "aws_apigatewayv2_route" "oauth_register" {
+  api_id    = aws_apigatewayv2_api.costs_api.id
+  route_key = "POST /oauth/register"
+  target    = "integrations/${aws_apigatewayv2_integration.router.id}"
 }
 
-resource "aws_apigatewayv2_route" "by_service_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "POST /cost/by-service"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.by_service_integration.id}"
+resource "aws_apigatewayv2_route" "oauth_authorize" {
+  api_id    = aws_apigatewayv2_api.costs_api.id
+  route_key = "GET /authorize"
+  target    = "integrations/${aws_apigatewayv2_integration.router.id}"
 }
 
-resource "aws_apigatewayv2_route" "compare_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "POST /cost/compare-months"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.compare_integration.id}"
+resource "aws_apigatewayv2_route" "oauth_callback" {
+  api_id    = aws_apigatewayv2_api.costs_api.id
+  route_key = "GET /oauth/callback"
+  target    = "integrations/${aws_apigatewayv2_integration.router.id}"
 }
 
-resource "aws_apigatewayv2_route" "daily_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "POST /cost/daily-trend"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.daily_integration.id}"
+resource "aws_apigatewayv2_route" "oauth_token" {
+  api_id    = aws_apigatewayv2_api.costs_api.id
+  route_key = "POST /oauth/token"
+  target    = "integrations/${aws_apigatewayv2_integration.router.id}"
 }
 
-resource "aws_apigatewayv2_route" "top_drivers_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "POST /cost/top-drivers"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.top_drivers_integration.id}"
-}
-
-resource "aws_apigatewayv2_route" "forecast_route" {
-  api_id             = aws_apigatewayv2_api.costs_api.id
-  route_key          = "POST /cost/forecast"
-  authorization_type = "AWS_IAM"
-  target             = "integrations/${aws_apigatewayv2_integration.forecast_integration.id}"
+resource "aws_apigatewayv2_route" "mcp" {
+  api_id    = aws_apigatewayv2_api.costs_api.id
+  route_key = "POST /mcp"
+  target    = "integrations/${aws_apigatewayv2_integration.router.id}"
 }
 
 # --------------------------------------------------------------------------------
 # RESOURCE: aws_apigatewayv2_stage.costs_stage
-# --------------------------------------------------------------------------------
-# Description:
-#   Creates the default stage for automatic API deployment.
 # --------------------------------------------------------------------------------
 resource "aws_apigatewayv2_stage" "costs_stage" {
   api_id      = aws_apigatewayv2_api.costs_api.id
@@ -162,71 +98,27 @@ resource "aws_apigatewayv2_stage" "costs_stage" {
 }
 
 # --------------------------------------------------------------------------------
-# RESOURCE: aws_lambda_permission — one per Lambda
+# RESOURCE: aws_lambda_permission.allow_router_invoke
 # --------------------------------------------------------------------------------
-# Grants API Gateway permission to invoke each Lambda function.
+# Grant API Gateway permission to invoke the router Lambda.
 # --------------------------------------------------------------------------------
-
-resource "aws_lambda_permission" "allow_tools_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeTools"
+resource "aws_lambda_permission" "allow_router_invoke" {
+  statement_id  = "AllowAPIGatewayInvokeRouter"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_tools.function_name
+  function_name = aws_lambda_function.mcp_router.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
 }
 
-resource "aws_lambda_permission" "allow_mtd_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeMtd"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_mtd.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
+# --------------------------------------------------------------------------------
+# OUTPUT: mcp_endpoint — the URL users paste into their MCP client
+# --------------------------------------------------------------------------------
+output "mcp_endpoint" {
+  description = "MCP connector URL — add this to claude.ai as a custom connector"
+  value       = "${aws_apigatewayv2_api.costs_api.api_endpoint}/mcp"
 }
 
-resource "aws_lambda_permission" "allow_by_service_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeByService"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_by_service.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
+output "api_base_url" {
+  description = "Base API Gateway URL (OAuth endpoints live under here)"
+  value       = aws_apigatewayv2_api.costs_api.api_endpoint
 }
-
-resource "aws_lambda_permission" "allow_compare_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeCompare"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_compare.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
-}
-
-resource "aws_lambda_permission" "allow_daily_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeDaily"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_daily.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
-}
-
-resource "aws_lambda_permission" "allow_top_drivers_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeTopDrivers"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_top_drivers.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
-}
-
-resource "aws_lambda_permission" "allow_forecast_invoke" {
-  statement_id  = "AllowAPIGatewayInvokeForecast"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_forecast.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.costs_api.execution_arn}/*/*"
-}
-
-# # --------------------------------------------------------------------------------
-# # OUTPUT: costs_api_endpoint (optional)
-# # --------------------------------------------------------------------------------
-# output "costs_api_endpoint" {
-#   description = "Invoke URL for the Cost Explorer MCP API"
-#   value       = aws_apigatewayv2_stage.costs_stage.invoke_url
-# }

@@ -25,9 +25,11 @@ set -euo pipefail
 # ------------------------------------------------------------------------------
 
 # Removes all infrastructure including:
-#   - Six cost-query Lambda functions
+#   - Six cost-query Lambdas + the MCP router Lambda
+#   - Cognito user pool, Hosted UI domain, and MCP OAuth client
+#   - OAuth state DynamoDB table
 #   - API Gateway (HTTP API) and routes/integrations
-#   - IAM roles and inline Cost Explorer policies
+#   - IAM roles and inline policies
 # provisioned by Terraform in the 01-lambdas directory.
 echo "NOTE: Destroying Lambdas and API Gateway..."
 

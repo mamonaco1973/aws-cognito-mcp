@@ -7,9 +7,9 @@
 #   directly via the AWS CLI.
 #
 # Notes:
-#   - API Gateway routes require AWS_IAM authorization (SigV4 signing).
-#     Direct Lambda invocation bypasses API Gateway auth and is used here
-#     so validation works without a separately configured MCP proxy.
+#   - The live path for MCP clients is POST /mcp, gated by a Cognito OAuth
+#     Bearer token. Direct Lambda invocation bypasses that so validation can
+#     confirm Cost Explorer connectivity without driving the OAuth flow.
 #   - All functions take no input — the payload is an empty JSON object.
 #   - A non-200 statusCode in the Lambda response is treated as a failure.
 # ================================================================================
@@ -127,8 +127,10 @@ invoke_tool "cost-forecast" "forecast_month_end_cost"
 # Summary
 # ------------------------------------------------------------------------------
 
+# The cost Lambdas above are invoked directly (bypassing auth). The live path
+# for MCP clients is POST /mcp, gated by a Cognito OAuth Bearer token.
 API_ID=$(aws apigatewayv2 get-apis \
-  --query "Items[?Name=='costs-api'].ApiId" \
+  --query "Items[?Name=='costs-mcp-api'].ApiId" \
   --output text)
 
 API_BASE=""
@@ -141,11 +143,11 @@ fi
 
 echo ""
 echo "========================================================================"
-echo "  Validation complete — tool discovery + all six MCP cost tools OK."
+echo "  Validation complete — tool registry + all six MCP cost tools OK."
 echo "========================================================================"
 if [[ -n "${API_BASE}" ]]; then
-  echo "  API endpoint: ${API_BASE}"
-  echo "  Auth: AWS_IAM (SigV4 required for all routes)"
+  echo "  MCP endpoint: ${API_BASE}/mcp"
+  echo "  Auth: Cognito OAuth (Bearer access token via the claude.ai flow)"
 fi
 echo "========================================================================"
 

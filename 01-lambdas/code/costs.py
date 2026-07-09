@@ -26,9 +26,10 @@ Cost Explorer notes:
       raise DataUnavailableException on brand-new accounts.
 
 Authentication:
-    All API Gateway routes require AWS_IAM authorization. Callers must sign
-    requests with SigV4 using credentials that have ce:GetCostAndUsage and/or
-    ce:GetCostForecast permissions.
+    These handlers are not exposed through API Gateway. The MCP router Lambda
+    (router.py → mcp.py) invokes them via lambda:InvokeFunction after validating
+    the caller's Cognito OAuth token. Each function keeps its own least-privilege
+    execution role scoped to ce:GetCostAndUsage and/or ce:GetCostForecast.
 """
 
 import json
@@ -54,12 +55,13 @@ ce = boto3.client("ce", region_name="us-east-1")
 def _audit_log(event: dict, tool: str) -> None:
     """Log the tool invocation with the calling user for audit purposes.
 
-    The x-mcp-user header is set by the proxy from the OS username and signed
-    into the SigV4 request — it cannot be omitted without breaking the signature.
-    It is audit-quality (self-reported by the proxy host) not proof-of-identity.
+    The MCP router forwards the authenticated Cognito user's email in the
+    x-mcp-user header of the invoke payload (mcp._invoke_tool). Unlike the old
+    proxy's self-reported username, this value is derived from a validated OAuth
+    token, so it is a real caller identity.
 
     Args:
-        event (dict): API Gateway v2 HTTP event.
+        event (dict): Invoke payload built by the router ({"headers": {...}}).
         tool (str): Name of the MCP tool being invoked.
     """
     user = (event.get("headers") or {}).get("x-mcp-user", "unknown")
