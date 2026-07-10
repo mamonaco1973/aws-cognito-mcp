@@ -92,15 +92,12 @@
           <mxGeometry height="75" width="75" x="760" y="326" as="geometry" />
         </mxCell>
         <mxCell id="c-cost-explorer" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cost_explorer;textShadow=1;" value="Cost Explorer&lt;div&gt;(global, us-east-1)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="75" width="75" x="950" y="216" as="geometry" />
-        </mxCell>
-        <mxCell id="c-cloudwatch" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch;textShadow=1;" value="CloudWatch Logs" vertex="1">
-          <mxGeometry height="75" width="75" x="950" y="436" as="geometry" />
+          <mxGeometry height="75" width="75" x="960" y="326" as="geometry" />
         </mxCell>
         <mxCell id="c-e-claude-apigw" edge="1" parent="1" source="c-claude" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=0;labelBackgroundColor=none;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;textShadow=1;fontSize=15;" target="c-apigw" value="&lt;font&gt;MCP over HTTPS&lt;/font&gt;&lt;div&gt;&lt;font&gt;+ OAuth login&lt;/font&gt;&lt;/div&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="c-e-apigw-router" edge="1" parent="1" source="c-apigw" style="endArrow=classic;startArrow=none;html=1;rounded=0;dashed=0;labelBackgroundColor=none;spacingTop=-25;textShadow=1;fontSize=15;" target="c-router" value="proxy integration">
+        <mxCell id="c-e-apigw-router" edge="1" parent="1" source="c-apigw" style="endArrow=classic;startArrow=none;html=1;rounded=0;dashed=0;labelBackgroundColor=none;spacingTop=-25;textShadow=1;fontSize=15;" target="c-router" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="c-e-router-cognito" edge="1" parent="1" source="c-router" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=1;labelBackgroundColor=none;textShadow=1;fontSize=14;" target="c-cognito" value="&lt;font&gt;OAuth broker&lt;/font&gt;&lt;div&gt;&lt;font&gt;validate token&lt;/font&gt;&lt;/div&gt;">
@@ -113,9 +110,6 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="c-e-lambdas-ce" edge="1" parent="1" source="c-costlambdas" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=1;labelBackgroundColor=none;" target="c-cost-explorer" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="c-e-lambdas-cw" edge="1" parent="1" source="c-costlambdas" style="endArrow=classic;startArrow=none;html=1;rounded=0;dashed=1;labelBackgroundColor=none;" target="c-cloudwatch" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
