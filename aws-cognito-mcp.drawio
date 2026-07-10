@@ -125,4 +125,129 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="http-surface" name="HTTP Surface">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1200" pageHeight="620" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="g-title" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=light-dark(#000000,#ededed);" value="HTTP surface — every route the connector exposes">
+          <mxGeometry height="30" width="900" x="80" y="24" as="geometry" />
+        </mxCell>
+        <mxCell id="g-sub" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontColor=light-dark(#5A6472,#aab3c0);" value="The OAuth routes are public — they ARE the login. Only /mcp checks a token.">
+          <mxGeometry height="22" width="1000" x="80" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="g-a-box" parent="1" vertex="1" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;fillColor=#F3F7FE;strokeColor=#CBD9F0;" value="">
+          <mxGeometry height="312" width="1040" x="80" y="98" as="geometry" />
+        </mxCell>
+        <mxCell id="g-a-cap" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#2F5BA8;" value="OAuth — public authorization endpoints (they ARE the authentication)">
+          <mxGeometry height="24" width="820" x="102" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="g-h-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontStyle=1;fontColor=#8792A2;" value="ENDPOINT">
+          <mxGeometry height="16" width="440" x="104" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="g-h-m" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontStyle=1;fontColor=#8792A2;" value="METHOD">
+          <mxGeometry height="16" width="80" x="562" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="g-h-a" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontStyle=1;fontColor=#8792A2;" value="AUTH">
+          <mxGeometry height="16" width="120" x="682" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="g-h-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontStyle=1;fontColor=#8792A2;" value="PURPOSE">
+          <mxGeometry height="16" width="270" x="840" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="r1-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Courier New;fontSize=13;fontColor=light-dark(#1A2330,#e6e6e6);" value="/.well-known/oauth-authorization-server">
+          <mxGeometry height="44" width="450" x="104" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="r1-m" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#E6F5EC;strokeColor=#8BD3A4;fontColor=#1E7A38;fontSize=12;fontStyle=1;" value="GET">
+          <mxGeometry height="26" width="62" x="562" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="r1-a" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#EDEFF2;strokeColor=#D2D7DE;fontColor=#5A6472;fontSize=12;" value="public">
+          <mxGeometry height="26" width="100" x="682" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="r1-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=light-dark(#5A6472,#aab3c0);" value="RFC 8414 metadata">
+          <mxGeometry height="44" width="280" x="840" y="166" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" parent="1" edge="1" style="endArrow=none;html=1;strokeColor=#E2E9F3;">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="100" y="214" as="sourcePoint" /><mxPoint x="1100" y="214" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="r2-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Courier New;fontSize=13;fontColor=light-dark(#1A2330,#e6e6e6);" value="/oauth/register">
+          <mxGeometry height="44" width="450" x="104" y="214" as="geometry" />
+        </mxCell>
+        <mxCell id="r2-m" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#E7F0FF;strokeColor=#A9C4F5;fontColor=#1E52C7;fontSize=12;fontStyle=1;" value="POST">
+          <mxGeometry height="26" width="62" x="562" y="223" as="geometry" />
+        </mxCell>
+        <mxCell id="r2-a" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#EDEFF2;strokeColor=#D2D7DE;fontColor=#5A6472;fontSize=12;" value="public">
+          <mxGeometry height="26" width="100" x="682" y="223" as="geometry" />
+        </mxCell>
+        <mxCell id="r2-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=light-dark(#5A6472,#aab3c0);" value="RFC 7591 dynamic client registration">
+          <mxGeometry height="44" width="280" x="840" y="214" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" parent="1" edge="1" style="endArrow=none;html=1;strokeColor=#E2E9F3;">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="100" y="262" as="sourcePoint" /><mxPoint x="1100" y="262" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="r3-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Courier New;fontSize=13;fontColor=light-dark(#1A2330,#e6e6e6);" value="/authorize">
+          <mxGeometry height="44" width="450" x="104" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="r3-m" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#E6F5EC;strokeColor=#8BD3A4;fontColor=#1E7A38;fontSize=12;fontStyle=1;" value="GET">
+          <mxGeometry height="26" width="62" x="562" y="271" as="geometry" />
+        </mxCell>
+        <mxCell id="r3-a" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#EDEFF2;strokeColor=#D2D7DE;fontColor=#5A6472;fontSize=12;" value="public">
+          <mxGeometry height="26" width="100" x="682" y="271" as="geometry" />
+        </mxCell>
+        <mxCell id="r3-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=light-dark(#5A6472,#aab3c0);" value="Start Cognito login">
+          <mxGeometry height="44" width="280" x="840" y="262" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" parent="1" edge="1" style="endArrow=none;html=1;strokeColor=#E2E9F3;">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="100" y="310" as="sourcePoint" /><mxPoint x="1100" y="310" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="r4-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Courier New;fontSize=13;fontColor=light-dark(#1A2330,#e6e6e6);" value="/oauth/callback">
+          <mxGeometry height="44" width="450" x="104" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="r4-m" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#E6F5EC;strokeColor=#8BD3A4;fontColor=#1E7A38;fontSize=12;fontStyle=1;" value="GET">
+          <mxGeometry height="26" width="62" x="562" y="319" as="geometry" />
+        </mxCell>
+        <mxCell id="r4-a" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#EDEFF2;strokeColor=#D2D7DE;fontColor=#5A6472;fontSize=12;" value="public">
+          <mxGeometry height="26" width="100" x="682" y="319" as="geometry" />
+        </mxCell>
+        <mxCell id="r4-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=light-dark(#5A6472,#aab3c0);" value="Cognito redirect target">
+          <mxGeometry height="44" width="280" x="840" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" parent="1" edge="1" style="endArrow=none;html=1;strokeColor=#E2E9F3;">
+          <mxGeometry relative="1" as="geometry"><mxPoint x="100" y="358" as="sourcePoint" /><mxPoint x="1100" y="358" as="targetPoint" /></mxGeometry>
+        </mxCell>
+        <mxCell id="r5-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Courier New;fontSize=13;fontColor=light-dark(#1A2330,#e6e6e6);" value="/oauth/token">
+          <mxGeometry height="44" width="450" x="104" y="358" as="geometry" />
+        </mxCell>
+        <mxCell id="r5-m" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#E7F0FF;strokeColor=#A9C4F5;fontColor=#1E52C7;fontSize=12;fontStyle=1;" value="POST">
+          <mxGeometry height="26" width="62" x="562" y="367" as="geometry" />
+        </mxCell>
+        <mxCell id="r5-a" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#EDEFF2;strokeColor=#D2D7DE;fontColor=#5A6472;fontSize=12;" value="public">
+          <mxGeometry height="26" width="100" x="682" y="367" as="geometry" />
+        </mxCell>
+        <mxCell id="r5-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=light-dark(#5A6472,#aab3c0);" value="Exchange code → Cognito access token">
+          <mxGeometry height="44" width="280" x="840" y="358" as="geometry" />
+        </mxCell>
+        <mxCell id="g-b-box" parent="1" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#FFF6E9;strokeColor=#E0B057;strokeWidth=2;" value="">
+          <mxGeometry height="96" width="1040" x="80" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="g-b-cap" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#9A5B00;" value="Protected — the one route that checks a token">
+          <mxGeometry height="22" width="700" x="102" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="rm-ep" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Courier New;fontSize=16;fontStyle=1;fontColor=light-dark(#1A2330,#ffffff);" value="/mcp">
+          <mxGeometry height="40" width="200" x="104" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="rm-m" parent="1" vertex="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#E7F0FF;strokeColor=#A9C4F5;fontColor=#1E52C7;fontSize=12;fontStyle=1;" value="POST">
+          <mxGeometry height="26" width="62" x="562" y="477" as="geometry" />
+        </mxCell>
+        <mxCell id="rm-a" parent="1" vertex="1" style="rounded=1;arcSize=30;whiteSpace=wrap;html=1;fillColor=#FFE1B0;strokeColor=#E0A040;fontColor=#8A4B00;fontSize=12;fontStyle=1;" value="🔒 Bearer (Cognito)">
+          <mxGeometry height="28" width="150" x="682" y="476" as="geometry" />
+        </mxCell>
+        <mxCell id="rm-p" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=light-dark(#5A6472,#d0b48a);" value="MCP JSON-RPC — runs the six cost tools">
+          <mxGeometry height="40" width="280" x="850" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="g-foot" parent="1" vertex="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontStyle=2;fontColor=light-dark(#6A7480,#9aa4b2);" value="Public routes can't leak data — they only broker login. A valid Cognito user's token is what unlocks /mcp.">
+          <mxGeometry height="22" width="1040" x="80" y="540" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>

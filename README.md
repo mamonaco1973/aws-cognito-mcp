@@ -17,7 +17,6 @@ The only thing a user does is paste one URL into their MCP client.
 
 ![diagram](aws-cognito-mcp.png)
 
-
 ## How it works
 
 An **API Gateway HTTP API** fronts a single **router Lambda**. Every route is
@@ -167,6 +166,8 @@ Top AWS cost drivers (2026-04-01 through 2026-04-27):
 ---
 
 ## HTTP surface
+
+![diagram](oauth_sequence.png)
 
 | Endpoint | Method | Auth | Purpose |
 |----------|--------|------|---------|
