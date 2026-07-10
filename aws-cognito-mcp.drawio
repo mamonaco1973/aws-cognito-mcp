@@ -1,5 +1,5 @@
-<mxfile host="app.diagrams.net" agent="Claude">
-  <diagram id="arch" name="Architecture">
+<mxfile host="app.diagrams.net" agent="Claude" pages="2">
+  <diagram id="arch" name="Before — Local Proxy">
     <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" background="none" math="0" shadow="1">
       <root>
         <mxCell id="0" />
@@ -58,6 +58,65 @@
             <mxPoint x="100" y="260" as="sourcePoint" />
             <mxPoint x="100" y="359" as="targetPoint" />
           </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="arch-cognito" name="Architecture — Cognito OAuth">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1169" pageHeight="827" background="none" math="0" shadow="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c-aws-zone" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#FF9900;dashed=0;arcSize=2;noLabel=1;textShadow=1;" value="" vertex="1">
+          <mxGeometry height="640" width="820" x="250" y="86" as="geometry" />
+        </mxCell>
+        <mxCell id="c-aws-cloud-label" parent="1" style="shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=none;fillColor=none;fontColor=light-dark(#000000, #bdc7d4);fontSize=12;align=left;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;spacing=8;html=1;points=[];textShadow=1;" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;AWS Cloud — us-east-1&lt;/font&gt;" vertex="1">
+          <mxGeometry height="26" width="32" x="250" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c-claude" parent="1" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=15;image=img/lib/azure2/general/Browser.svg;labelBackgroundColor=none;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;" value="claude.ai&lt;div&gt;(remote MCP client)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="65.79" width="75" x="80" y="330.6" as="geometry" />
+        </mxCell>
+        <mxCell id="c-cognito" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cognito;textShadow=1;" value="Cognito&lt;div&gt;User Pool + Hosted UI&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="75" x="540" y="106" as="geometry" />
+        </mxCell>
+        <mxCell id="c-apigw" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#CC2264;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;textShadow=1;" value="costs-mcp-api&lt;div&gt;HTTP API — public routes&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="75" x="330" y="326" as="geometry" />
+        </mxCell>
+        <mxCell id="c-router" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;textShadow=1;" value="MCP Router&lt;div&gt;router.py · oauth + mcp&lt;/div&gt;&lt;div&gt;Lambda&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="75" x="540" y="326" as="geometry" />
+        </mxCell>
+        <mxCell id="c-dynamo" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#4D72F3;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;textShadow=1;" value="OAuth State&lt;div&gt;PENDINGAUTH · AUTHCODE&lt;/div&gt;&lt;div&gt;(5-min TTL)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="75" x="540" y="556" as="geometry" />
+        </mxCell>
+        <mxCell id="c-costlambdas" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;textShadow=1;" value="costs.py&lt;div&gt;6 cost tools&lt;/div&gt;&lt;div&gt;Lambda (Python 3.14)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="75" x="760" y="326" as="geometry" />
+        </mxCell>
+        <mxCell id="c-cost-explorer" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cost_explorer;textShadow=1;" value="Cost Explorer&lt;div&gt;(global, us-east-1)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="75" width="75" x="950" y="216" as="geometry" />
+        </mxCell>
+        <mxCell id="c-cloudwatch" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=light-dark(#000000,#000000);fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch;textShadow=1;" value="CloudWatch Logs" vertex="1">
+          <mxGeometry height="75" width="75" x="950" y="436" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-claude-apigw" edge="1" parent="1" source="c-claude" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=0;labelBackgroundColor=none;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;textShadow=1;fontSize=15;" target="c-apigw" value="&lt;font&gt;MCP over HTTPS&lt;/font&gt;&lt;div&gt;&lt;font&gt;+ OAuth login&lt;/font&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-apigw-router" edge="1" parent="1" source="c-apigw" style="endArrow=classic;startArrow=none;html=1;rounded=0;dashed=0;labelBackgroundColor=none;spacingTop=-25;textShadow=1;fontSize=15;" target="c-router" value="proxy integration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-router-cognito" edge="1" parent="1" source="c-router" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=1;labelBackgroundColor=none;textShadow=1;fontSize=14;" target="c-cognito" value="&lt;font&gt;OAuth broker&lt;/font&gt;&lt;div&gt;&lt;font&gt;validate token&lt;/font&gt;&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-router-dynamo" edge="1" parent="1" source="c-router" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=1;labelBackgroundColor=none;textShadow=1;fontSize=14;" target="c-dynamo" value="OAuth state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-router-lambdas" edge="1" parent="1" source="c-router" style="endArrow=classic;startArrow=none;html=1;rounded=0;dashed=0;labelBackgroundColor=none;spacingTop=-25;textShadow=1;fontSize=14;" target="c-costlambdas" value="lambda:Invoke&lt;div&gt;(tools/call)&lt;/div&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-lambdas-ce" edge="1" parent="1" source="c-costlambdas" style="endArrow=classic;startArrow=classic;startFill=1;html=1;rounded=0;dashed=1;labelBackgroundColor=none;" target="c-cost-explorer" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c-e-lambdas-cw" edge="1" parent="1" source="c-costlambdas" style="endArrow=classic;startArrow=none;html=1;rounded=0;dashed=1;labelBackgroundColor=none;" target="c-cloudwatch" value="">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

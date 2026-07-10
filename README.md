@@ -15,10 +15,8 @@ The only thing a user does is paste one URL into their MCP client.
 > script. The OAuth authorization-server proxy pattern is the key enabler for
 > going proxy-free.
 
-![diagram](aws-serverless-mcp.png)
+![diagram](aws-cognito-mcp.png)
 
-> ⚠️ The diagram images and `00-resources/` still show the previous IAM + local
-> proxy design and will be regenerated.
 
 ## How it works
 
