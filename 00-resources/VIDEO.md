@@ -1,4 +1,4 @@
-#AWS #MCP #ModelContextProtocol #Cognito #OAuth #AWSLambda #APIGateway #Terraform #Python #ClaudeAI #Serverless
+#AWS #MCP #Cognito #OAuth #ClaudeAI
 
 *Secure a Remote MCP Server with Amazon Cognito (OAuth 2.0)*
 
