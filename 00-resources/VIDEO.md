@@ -1,42 +1,39 @@
-#AWS #MCP #ModelContextProtocol #AWSLambda #APIGateway #Terraform #Python #ClaudeDesktop #Serverless #IAM
+#AWS #MCP #ModelContextProtocol #Cognito #OAuth #AWSLambda #APIGateway #Terraform #Python #ClaudeAI #Serverless
 
-*Build a Serverless MCP Backend on AWS (Lambda + API Gateway + SigV4)*
+*Secure a Remote MCP Server with Amazon Cognito (OAuth 2.0)*
 
-How do you expose serverless AWS tools to any AI client — securely, without managing servers, and without hardcoding anything in the proxy?
+How do you let Claude call your AWS tools securely — with a real login, no local proxy, and no API keys to hand around?
 
-In this project we build a reusable MCP backend pattern on AWS: Lambda functions behind API Gateway with full IAM authorization, bridged to any MCP client by a lightweight stdio proxy that signs every request with SigV4.
+In this project we connect Claude directly to a remote MCP server on AWS, secured with Amazon Cognito. You paste one URL into Claude, sign in through a real Cognito login page in your browser, and Claude can query your live AWS costs. No proxy script running on your machine, no SigV4 signing, nothing installed locally.
 
-The proxy makes the remote AWS backend look like a local tool server. The AI never knows the difference. We use AWS Cost Explorer as the example backend — but the pattern works for any Lambda-backed tool set.
+Last time we bridged Claude to AWS with a local stdio proxy that signed every request with SigV4. This time the proxy is gone. The connector speaks OAuth, and an API Gateway Lambda plays the role of the OAuth authorization server — brokering Claude's login against Cognito and validating the access token on every tool call.
 
-The proxy itself contains zero tool-specific logic. It self-configures at startup by calling a /tools discovery endpoint, so you can add or remove tools without touching the proxy at all. Point it at a different endpoint and you have a completely different tool set.
-
-This pattern works with Claude Desktop, OpenAI Codex, Cursor, and any other MCP client that supports stdio transport.
+We use AWS Cost Explorer as the example tool set — six cost-query tools behind one router Lambda — but the auth pattern works for any Lambda-backed MCP server.
 
 WHAT YOU'LL LEARN
-• The serverless MCP backend pattern — how to make remote Lambda tools appear local to any AI client
-• Writing a stdio MCP proxy in Bash (and PowerShell) that signs requests with AWS SigV4
-• Securing API Gateway routes with AWS_IAM authorization — no API keys to manage or rotate
-• Applying least-privilege IAM — one scoped execution role per Lambda, one proxy user with invoke-only rights
-• Building a self-configuring /tools discovery endpoint so the proxy never needs hardcoded tool definitions
-• Storing and retrieving proxy credentials from Secrets Manager
+• Remote MCP over OAuth — connect claude.ai to AWS with just a URL, no local proxy or SigV4
+• Turning an API Gateway Lambda into an OAuth authorization server (RFC 8414 metadata + RFC 7591 dynamic client registration)
+• Brokering claude.ai's dynamic redirect URI against Cognito's exact-match callback
+• Validating Cognito access tokens inside the Lambda via the /oauth2/userInfo endpoint
+• Least-privilege fan-out — a router Lambda that invokes six scoped Cost Explorer tools
+• Authentication vs authorization — why every authenticated user is authorized here, and when that is fine
 
 INFRASTRUCTURE DEPLOYED
-• API Gateway HTTP API v2 — 7 routes, all AWS_IAM authorized (unsigned requests rejected before Lambda runs)
-• 7 Lambda functions (Python 3.14) — 6 example tools + 1 self-configuring tool registry endpoint
-• 7 IAM execution roles — one per Lambda, each scoped to only the permissions that function needs
-• IAM user scoped to execute-api:Invoke on this API only — cannot call any AWS service directly
-• Secrets Manager secret storing proxy credentials (key ID, secret, endpoint, region)
-• MCP proxy (proxy.sh / proxy.ps1) — generic stdio bridge with SigV4 signing, zero tool-specific logic
+• API Gateway HTTP API — public routes; authentication enforced inside the Lambda (OAuth endpoints + /mcp)
+• MCP router Lambda (Python 3.14) — serves the OAuth flow and the MCP JSON-RPC endpoint, invokes the cost tools
+• 6 Cost Explorer Lambdas — each with its own scoped execution role
+• Amazon Cognito user pool + Hosted UI + confidential MCP OAuth client
+• DynamoDB table — transient OAuth state, 5-minute TTL
+• All provisioned with Terraform in a single apply, torn down with a single command
 
 GitHub
-https://github.com/mamonaco1973/aws-serverless-mcp
+https://github.com/mamonaco1973/aws-cognito-mcp
 
 README
-https://github.com/mamonaco1973/aws-serverless-mcp/blob/main/README.md
+https://github.com/mamonaco1973/aws-cognito-mcp/blob/main/README.md
 
 TIMESTAMPS
-00:00 Introduction
-00:17 Architecture
-01:09 Build the Code
-01:25 Build Results
-02:10 Demo
+00:00 Live Demo
+00:41 Architecture
+01:35 Securing MCP
+02:17 Deploy It Yourself
