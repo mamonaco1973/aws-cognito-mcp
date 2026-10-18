@@ -1,9 +1,10 @@
 # CLAUDE.md — aws-cognito-mcp
 
 A serverless AWS Cost Explorer API exposed as a **remote MCP connector** secured
-with **Cognito OAuth 2.0**. Claude (claude.ai / Claude Desktop) connects directly
-to a remote `/mcp` endpoint over HTTPS, authenticates the user through Cognito's
-Hosted UI, and calls the cost tools — **no local proxy, no SigV4, no API keys**.
+with **Cognito OAuth 2.0**. Claude (claude.ai / Claude Desktop) and ChatGPT
+(developer-mode app) connect directly to the same remote `/mcp` endpoint over
+HTTPS, authenticate the user through Cognito's Hosted UI, and call the cost
+tools — **no local proxy, no SigV4, no API keys**.
 
 > This is the Cognito port of `aws-serverless-mcp`, which used AWS_IAM auth and a
 > local SigV4-signing proxy. The OAuth pattern here is adapted from
@@ -34,11 +35,12 @@ through API Gateway anymore.
 ## Architecture
 
 ```
-Claude (claude.ai / Claude Desktop) — remote MCP client
+Claude or ChatGPT — remote MCP client
      │  1. discover:  GET /.well-known/oauth-authorization-server
      │  2. register:  POST /oauth/register            (RFC 7591)
      │  3. login:     GET /authorize → Cognito Hosted UI → GET /oauth/callback
-     │  4. token:     POST /oauth/token   (mac_ code → Cognito access token)
+     │                (ChatGPT adds a PKCE S256 code_challenge here)
+     │  4. token:     POST /oauth/token   (mac_ code [+ code_verifier] → token)
      │  5. use:       POST /mcp  (Authorization: Bearer <cognito access token>)
      ▼
 API Gateway (HTTP API) — costs-mcp-api   [all routes PUBLIC; Lambda enforces auth]
@@ -47,7 +49,8 @@ cost-mcp-router (Lambda)  ── router.py → oauth.py + mcp.py
      │   validates Bearer via Cognito /oauth2/userInfo
      │   tools/list → invoke cost-tools;  tools/call → invoke cost-<tool>
      ├── lambda:InvokeFunction ──▶ cost-mtd / cost-by-service / … / cost-forecast
-     └── DynamoDB (cost-mcp-oauth) — transient PENDINGAUTH / AUTHCODE (5-min TTL)
+     └── DynamoDB (cost-mcp-oauth) — transient PENDINGAUTH / AUTHCODE (5-min TTL),
+                                      each carrying the PKCE challenge if sent
                     │
      Cognito User Pool + Hosted UI + MCP confidential client (secret)
 ```
@@ -61,7 +64,17 @@ OAuth authorization server, registers only our fixed `/oauth/callback` with
 Cognito, brokers the Cognito login, and hands claude.ai a one-time `mac_` code
 backed by the real Cognito access token in DynamoDB. The token passed to Claude
 is a genuine Cognito access token — validated statelessly at `/mcp` via
-`/oauth2/userInfo`. No custom crypto.
+`/oauth2/userInfo`. No custom crypto. ChatGPT's per-app redirect_uri is brokered
+the same way.
+
+### PKCE (ChatGPT)
+
+ChatGPT will not create a connector unless `/.well-known/oauth-authorization-server`
+advertises `code_challenge_methods_supported: ["S256"]` — it fails with the
+misleading "Some app settings were rejected. Check the server URL or tunnel ID,
+icon, and authentication settings". It then sends a real challenge and verifier.
+Claude sends neither. `oauth.py` enforces PKCE only when a challenge was supplied
+(S256 only; `plain` → 400), so both clients work.
 
 ---
 
@@ -72,7 +85,7 @@ is a genuine Cognito access token — validated statelessly at `/mcp` via
   code/
     costs.py         Six cost handlers + TOOL_REGISTRY (unchanged from the IAM version)
     oauth.py         OAuth 2.0 authorization-server proxy (metadata, register,
-                     authorize, callback, token)
+                     authorize, callback, token) + PKCE S256
     mcp.py           MCP JSON-RPC handler; validates Cognito token; invokes cost Lambdas
     router.py        Lambda entrypoint; dispatches the public routes
   main.tf            AWS provider, data sources, archive_file (one zip, many handlers)
@@ -84,10 +97,14 @@ is a genuine Cognito access token — validated statelessly at `/mcp` via
   lambda-tools.tf    cost-tools Lambda (returns TOOL_REGISTRY)
   lambda-mtd.tf …    One file per cost Lambda (function + scoped CE role)
 check_env.sh         Pre-flight: aws / terraform / jq + credential test
-apply.sh             Deploy + validate + print connector instructions
+apply.sh             Deploy + validate (ends on the MCP endpoint URL)
 destroy.sh           Teardown
-validate.sh          Smoke test: direct-invoke each cost Lambda
+validate.sh          Smoke test: direct-invoke each cost Lambda, print MCP endpoint
+make_diagram.py      Generates architecture-/http-surface-{light,dark}.svg for README
 ```
+
+Connector setup steps for Claude and ChatGPT live in README.md only — the scripts
+deliberately print just the endpoint URL.
 
 ---
 
@@ -135,14 +152,16 @@ validate.sh          Smoke test: direct-invoke each cost Lambda
 
 ## Gotchas that have bitten
 
+- **PKCE is mandatory for ChatGPT, optional for Claude.** Do not make it
+  unconditional without checking Claude still connects.
 - **Token lifetime must match.** `oauth_token()` reports `expires_in: 86400` to
   match the Cognito client's `access_token_validity = 24h`. Underreporting makes
   Claude attempt an unsupported refresh and silently drop the session after 1h.
 - **`/mcp` and OAuth routes must stay public.** Do not attach a JWT authorizer —
   the flow breaks before a token exists.
 - **CE endpoint is always us-east-1** regardless of deploy region (see costs.py).
-- The `.drawio` / `.png` diagrams and `00-resources/` still depict the old
-  IAM+proxy design — regenerate before reusing them.
+- README diagrams are the generated SVG pairs — edit `make_diagram.py` and
+  rerun it rather than hand-editing the SVGs.
 
 ## Code Commenting Standards
 

@@ -3,11 +3,11 @@
 #
 # MCP (Model Context Protocol) server over HTTP.
 # Implements the streamable-HTTP transport — a plain POST carrying synchronous
-# JSON-RPC 2.0. This is what claude.ai / Claude Desktop speak to a remote MCP
+# JSON-RPC 2.0. This is what Claude and ChatGPT speak to a remote MCP
 # connector; no local proxy or stdio bridge is involved.
 #
 # Auth: Bearer token in the Authorization header. The token is a Cognito access
-# token issued by the claude.ai OAuth flow (see oauth.py) and validated here via
+# token issued by the OAuth flow (see oauth.py) and validated here via
 # Cognito's /oauth2/userInfo endpoint, which returns the user's email.
 #
 # Tools: the six Cost Explorer tools are backed by their own Lambda functions
@@ -210,7 +210,7 @@ def handle_mcp(event):
     """MCP JSON-RPC endpoint — auth via the OAuth Cognito access token."""
     user_id = _get_auth_user(event)
     if not user_id:
-        return _http_err("Unauthorized — connect via the claude.ai OAuth flow", 401)
+        return _http_err("Unauthorized — connect via the OAuth flow", 401)
 
     try:
         req = json.loads(event.get("body") or "{}")

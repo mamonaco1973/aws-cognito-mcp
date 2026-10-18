@@ -147,7 +147,6 @@ echo "  Validation complete — tool registry + all six MCP cost tools OK."
 echo "========================================================================"
 if [[ -n "${API_BASE}" ]]; then
   echo "  MCP endpoint: ${API_BASE}/mcp"
-  echo "  Auth: Cognito OAuth (Bearer access token via the claude.ai flow)"
 fi
 echo "========================================================================"
 

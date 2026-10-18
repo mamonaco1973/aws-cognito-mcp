@@ -23,12 +23,20 @@
 # The Cognito access token is passed through to claude.ai as-is — no custom token
 # storage or crypto. Cognito handles all of that.
 #
+# PKCE (RFC 7636) is supported end to end. ChatGPT refuses to create a connector
+# unless the metadata advertises code_challenge_methods_supported with S256
+# ("Some app settings were rejected"), and then sends a real challenge and
+# verifier. Claude sends neither today, so PKCE is enforced only when the client
+# started it — making it unconditional would break the Claude connector.
+#
 # DynamoDB records (5-min TTL, table = TABLE_NAME):
-#   pk=PENDINGAUTH#<sess>  sk=PENDINGAUTH   — redirect_uri, state
-#   pk=AUTHCODE#<code>     sk=AUTHCODE      — cognito_access_token, one-time use
+#   pk=PENDINGAUTH#<sess>  sk=PENDINGAUTH   — redirect_uri, state, challenge
+#   pk=AUTHCODE#<code>     sk=AUTHCODE      — cognito_access_token, challenge,
+#                                             one-time use
 # ================================================================================
 
 import base64
+import hashlib
 import json
 import logging
 import os
@@ -186,6 +194,9 @@ def oauth_metadata(event):
         "grant_types_supported":                 ["authorization_code"],
         "response_types_supported":              ["code"],
         "token_endpoint_auth_methods_supported": ["none", "client_secret_post"],
+        # Required by ChatGPT, which refuses to create the connector without it.
+        # Only S256 is offered: "plain" defeats the point of PKCE.
+        "code_challenge_methods_supported":      ["S256"],
     })
 
 
@@ -230,10 +241,17 @@ def oauth_authorize(event):
     redirect_uri  = qs.get("redirect_uri", "").strip()
     state         = qs.get("state", "")
     response_type = qs.get("response_type", "")
+    challenge     = qs.get("code_challenge", "").strip()
+    method        = qs.get("code_challenge_method", "").strip()
 
     if response_type != "code":
         return _err("unsupported_response_type", 400)
     if not redirect_uri:
+        return _err("invalid_request", 400)
+    # Only S256 is advertised, so anything else is a client that ignored the
+    # metadata. Accepting "plain" would let an interceptor of the challenge
+    # redeem the code, which is the attack PKCE exists to stop.
+    if challenge and method != "S256":
         return _err("invalid_request", 400)
 
     session_id = secrets.token_urlsafe(16)
@@ -243,6 +261,8 @@ def oauth_authorize(event):
         "sk":           "PENDINGAUTH",
         "redirect_uri": redirect_uri,
         "state":        state,
+        # Empty for a client that sent none (Claude, today).
+        "challenge":    challenge,
         "expires_at":   expires_at,
         "ttl":          expires_at,
     })
@@ -302,6 +322,9 @@ def oauth_callback(event):
         "sk":                   "AUTHCODE",
         "cognito_access_token": cognito_tokens["access_token"],
         "redirect_uri":         pending["redirect_uri"],
+        # Moved from the pending record: the token endpoint verifies against
+        # the code being redeemed, and the pending record is deleted below.
+        "challenge":            pending.get("challenge", ""),
         "expires_at":           expires_at,
         "ttl":                  expires_at,
     })
@@ -321,6 +344,16 @@ def oauth_callback(event):
 # Token endpoint (public) — POST /oauth/token
 # ================================================================================
 
+def _s256(verifier):
+    """Return the RFC 7636 S256 challenge for a verifier.
+
+    base64url, unpadded — the padding characters are not part of the
+    challenge, and comparing against a padded value never matches.
+    """
+    digest = hashlib.sha256(verifier.encode("ascii")).digest()
+    return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+
+
 def oauth_token(event):
     """Exchange a mac_ auth code for the stored Cognito access token."""
     params     = _parse_body(event)
@@ -329,9 +362,10 @@ def oauth_token(event):
     if grant_type != "authorization_code":
         return _err("unsupported_grant_type", 400)
 
-    # Security lives in the one-time AUTHCODE record — no client credential check
-    # needed. Clients registered via /oauth/register use auth method "none".
-    code = params.get("code", "").strip()
+    # Clients registered via /oauth/register use auth method "none", so there is
+    # no client secret to check. What binds the code to its requester is PKCE.
+    code     = params.get("code", "").strip()
+    verifier = params.get("code_verifier", "").strip()
     if not code:
         return _err("invalid_request", 400)
 
@@ -342,8 +376,18 @@ def oauth_token(event):
     if not code_item or int(time.time()) > int(code_item.get("expires_at", 0)):
         return _err("invalid_grant", 400)
 
-    # One-time use — delete before returning.
+    # One-time use — delete before any further check, so a failed verification
+    # cannot be retried against the same code.
     _table.delete_item(Key={"pk": f"AUTHCODE#{code}", "sk": "AUTHCODE"})
+
+    # PKCE, when the client started one. A challenge without a verifier, or a
+    # verifier that does not hash to it, means this is not the client that
+    # asked for the code.
+    challenge = code_item.get("challenge", "")
+    if challenge:
+        if not verifier or _s256(verifier) != challenge:
+            logger.warning("PKCE verification failed")
+            return _err("invalid_grant", 400)
 
     access_token = code_item["cognito_access_token"]
 
